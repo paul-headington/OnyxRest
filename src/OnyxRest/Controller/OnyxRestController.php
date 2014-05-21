@@ -3,6 +3,8 @@
 namespace OnyxRest\Controller;
 
 use Zend\Mvc\Controller\AbstractRestfulController;
+use Zend\EventManager\EventManagerInterface;
+use Zend\Mvc\MvcEvent;
 use Zend\View\Model\JsonModel;
 
 class OnyxRestController extends AbstractRestfulController
@@ -10,10 +12,24 @@ class OnyxRestController extends AbstractRestfulController
     protected $collectionOptions = array('GET', 'POST');
     protected $resourceOptions = array('GET', 'PUT', 'DELETE');
     
+    public function onDispatch( MvcEvent $e ){
+        if($this->params()->fromRoute('model', false)){
+            \Zend\Debug\Debug::dump($this->params()->fromRoute('model'));
+            exit();
+        }
+        
+        //if($this->params()->fromRoute('id', false)){
+            // we have and ID, return specific item
+        //    return $this->resourceOptions;
+        //}
+        return parent::onDispatch($e);
+    }
+
     
+
     public function _getOptions(){
         if($this->params()->fromRoute('id', false)){
-            // we have and ID, return specific item
+            // we have an ID, return specific item
             return $this->resourceOptions;
         }
         // no ID return collection
@@ -30,13 +46,22 @@ class OnyxRestController extends AbstractRestfulController
         return $response;
     }
     
-    public function setEventManager(EventManagerInterface $events){
-    
-        // events property defined in AbstractController
-        parent::setEventManager($events);         
+    /**
+     * Set the event manager instance used by this context
+     *
+     * @param  EventManagerInterface $events
+     * @return AbstractController
+     */
+    public function setEventManager(EventManagerInterface $events)
+    {
+        parent::setEventManager($events);
         
         // Register the listener and callback methods with a priority of 10
         $events->attach('dispatch',Array($this,'checkOptions'),10); 
+
+        return $this;
+        
+        
     }
     
     public function checkOptions($e){
@@ -58,29 +83,23 @@ class OnyxRestController extends AbstractRestfulController
         foreach($results as $result) {
             $data[] = $result;
         }
-
+*/
         return new JsonModel(array(
-            'data' => $data,
+            'data' => 'getlist',
         ));
-         * 
-         */
     }
 
     public function get($id)
     {
-        /*
-        $album = $this->getAlbumTable()->getAlbum($id);
+        
+        //$album = $this->getAlbumTable()->getAlbum($id);
 
         return new JsonModel(array(
-            'data' => $album,
+            'data' => 'get',
         ));
-         * 
-         */
     }
 
-    public function create($data)
-    {
-        \Zend\Debug\Debug::dump($this->params());
+    public function create($data){    
         //$modelAPRService = $this->getServiceLocator()->get();
         
         /*$form = new AlbumForm();
@@ -128,5 +147,21 @@ class OnyxRestController extends AbstractRestfulController
         ));
          * 
          */
+    }
+    
+    public function deleteList() {
+        $response = $this->getResponse();
+        $response->setStatusCode(400);
+        
+        $result = array(
+            'Error' => array(
+                'HTTP Status' => '400',
+                'Code'        => '123',
+                'Message'     => 'An ID is require to perform a delete',
+                'More Info'   => 'docs link',
+            ),
+        );
+        
+        return new JsonModel($result);
     }
 }

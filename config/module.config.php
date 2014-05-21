@@ -16,6 +16,10 @@ return array(
                         'id'     => '[0-9]+',
                         'model'  => '[a-zA-Z][a-zA-Z0-9_-]*',
                     ),
+                    'defaults' => array(
+                        '__NAMESPACE__' => 'OnyxRest\Controller',
+                        'controller'    => 'OnyxRest',
+                    ),
                 ),
             ),
         ),

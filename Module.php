@@ -22,4 +22,25 @@ class Module
     {
         return include __DIR__ . '/config/module.config.php';
     }
+    
+    public function getServiceConfig()
+    {
+        return array(
+            'factories' => array(
+                'RestResourceTable' =>  function($sm) {
+                    $tableGateway = $sm->get('RestResourceTableGateway');
+                    $table = new AclResourceTable($tableGateway);
+                    return $table;
+                },
+                'RestResourceTableGateway' => function ($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    $resultSetPrototype = new ResultSet();
+                    $resultSetPrototype->setArrayObjectPrototype(new RestResource());
+                    return new TableGateway('rest_resource', $dbAdapter, null, $resultSetPrototype);
+                },
+                 
+            ),
+            
+        );
+    }
 }
