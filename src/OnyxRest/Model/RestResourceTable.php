@@ -86,6 +86,7 @@ class RestResourceTable
         	'id' => $restresource->id,
         	'name' => $restresource->name,
         	'factory' => $restresource->factory,
+        	'tablename' => $restresource->tablename,
         	'auth' => $restresource->auth,
         	'updatedon' => $restresource->updatedon,
         	'postdate' => $restresource->postdate,
