@@ -12,10 +12,24 @@ class OnyxRestController extends AbstractRestfulController
     protected $collectionOptions = array('GET', 'POST');
     protected $resourceOptions = array('GET', 'PUT', 'DELETE');
     
+    protected $serviceFactory;
+    protected $modelTable;
+    protected $restResourceTable;
+
+
     public function onDispatch( MvcEvent $e ){
         if($this->params()->fromRoute('model', false)){
-            \Zend\Debug\Debug::dump($this->params()->fromRoute('model'));
-            exit();
+            $restResourceTable = $this->getRestResourceTable();
+            $restResource = $restResourceTable->fetchByName($this->params()->fromRoute('model'));
+            
+            if($restResource){
+                $this->serviceFactory = $restResource->factory;
+            }else{
+                // method not allowed
+                $response = $this->getResponse();
+                $response->setStatusCode(405);
+                return $response;
+            }
         }
         
         //if($this->params()->fromRoute('id', false)){
@@ -78,24 +92,25 @@ class OnyxRestController extends AbstractRestfulController
 
     public function getList()
     {
-        /*$results = $this->getModelTable()->fetchAll();
+        $results = $this->getModelTable()->fetchAll();
         $data = array();
         foreach($results as $result) {
             $data[] = $result;
         }
-*/
+
         return new JsonModel(array(
-            'data' => 'getlist',
+            'data' => $data,
         ));
     }
 
     public function get($id)
     {
+        $modelTable = $this->getModelTable();
         
-        //$album = $this->getAlbumTable()->getAlbum($id);
+        $data = $modelTable->getById($id);
 
         return new JsonModel(array(
-            'data' => 'get',
+            'data' => $data,
         ));
     }
 
@@ -163,5 +178,21 @@ class OnyxRestController extends AbstractRestfulController
         );
         
         return new JsonModel($result);
+    }
+    
+    private function getModelTable(){
+        if (!$this->modelTable) {
+            $sm = $this->getServiceLocator();
+            $this->modelTable = $sm->get($this->serviceFactory);
+        }
+        return $this->modelTable;
+    }
+    
+    private function getRestResourceTable(){
+        if (!$this->restResourceTable) {
+            $sm = $this->getServiceLocator();
+            $this->restResourceTable = $sm->get('RestResourceTable');
+        }
+        return $this->restResourceTable;
     }
 }

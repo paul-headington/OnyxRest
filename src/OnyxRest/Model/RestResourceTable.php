@@ -114,6 +114,24 @@ class RestResourceTable
     {
         $this->tableGateway->delete(array('id' => $id));
     }
+    
+    /**
+     * Return named route
+     */
+    public function fetchByName($name)
+    {
+        $resultSet = $this->tableGateway->select(function (\Zend\Db\Sql\Select $select) use ($name) {
+                     $select->where->equalTo('name', $name);
+                     $select->limit(1);
+        });
+        
+        if($resultSet->count() < 1){
+            return false;
+        }
+        
+        return $resultSet->current();
+        
+    }
 
 
 }
