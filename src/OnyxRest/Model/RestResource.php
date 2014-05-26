@@ -46,6 +46,8 @@ class RestResource
 
     public $factory = null;
 
+    public $modelfactory = null;
+
     public $tablename = null;
 
     public $auth = null;
@@ -59,7 +61,7 @@ class RestResource
     protected $validation = array(
         'id' => array(
             'required' => false,
-            'validator' => array(
+            'validators' => array(
                 array(
                     'name' => 'not_empty'
                 ),
@@ -73,7 +75,7 @@ class RestResource
         ),
         'name' => array(
             'required' => false,
-            'validator' => array(
+            'validators' => array(
                 array(
                     'name' => 'not_empty'
                 ),
@@ -87,7 +89,21 @@ class RestResource
         ),
         'factory' => array(
             'required' => false,
-            'validator' => array(
+            'validators' => array(
+                array(
+                    'name' => 'not_empty'
+                ),
+                array(
+                    'name' => 'string_length',
+                    'options' => array(
+                        'min' => 3
+                    )
+                )
+            )
+        ),
+        'modelfactory' => array(
+            'required' => false,
+            'validators' => array(
                 array(
                     'name' => 'not_empty'
                 ),
@@ -101,7 +117,7 @@ class RestResource
         ),
         'tablename' => array(
             'required' => false,
-            'validator' => array(
+            'validators' => array(
                 array(
                     'name' => 'not_empty'
                 ),
@@ -115,19 +131,19 @@ class RestResource
         ),
         'auth' => array(
             'required' => false,
-            'validator' => array(
+            'validators' => array(
                 
             )
         ),
         'updatedon' => array(
             'required' => false,
-            'validator' => array(
+            'validators' => array(
                 
             )
         ),
         'postdate' => array(
             'required' => false,
-            'validator' => array(
+            'validators' => array(
                 
             )
         )
@@ -156,6 +172,7 @@ class RestResource
         $this->id		= (isset($data["id"])) ? $data["id"] : null;
         $this->name		= (isset($data["name"])) ? $data["name"] : null;
         $this->factory		= (isset($data["factory"])) ? $data["factory"] : null;
+        $this->modelfactory		= (isset($data["modelfactory"])) ? $data["modelfactory"] : null;
         $this->tablename		= (isset($data["tablename"])) ? $data["tablename"] : null;
         $this->auth		= (isset($data["auth"])) ? $data["auth"] : null;
         $this->updatedon		= (isset($data["updatedon"])) ? $data["updatedon"] : null;

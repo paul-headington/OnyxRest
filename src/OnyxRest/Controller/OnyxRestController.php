@@ -6,6 +6,7 @@ use Zend\Mvc\Controller\AbstractRestfulController;
 use Zend\EventManager\EventManagerInterface;
 use Zend\Mvc\MvcEvent;
 use Zend\View\Model\JsonModel;
+use Zend\InputFilter\Factory;
 
 class OnyxRestController extends AbstractRestfulController
 {
@@ -13,8 +14,24 @@ class OnyxRestController extends AbstractRestfulController
     protected $resourceOptions = array('GET', 'PUT', 'DELETE');
     
     protected $serviceFactory;
+    protected $serviceModelFactory;
     protected $modelTable;
+    protected $model;
     protected $restResourceTable;
+    
+    protected $errorReturn = array(
+            'Error' => array(
+                'HTTP Status' => '400',
+                'Code'        => '123',
+                'Message'     => 'An ID is require to perform a delete',
+                'More Info'   => 'docs link',
+            ));
+    
+    protected $successReturn = array(
+            'Success' => array(
+                'Data'        => '400',
+                'Message'     => 'The request was successful',
+            ));
 
 
     public function onDispatch( MvcEvent $e ){
@@ -24,6 +41,7 @@ class OnyxRestController extends AbstractRestfulController
             
             if($restResource){
                 $this->serviceFactory = $restResource->factory;
+                $this->serviceModelFactory = $restResource->modelfactory;
             }else{
                 // method not allowed
                 $response = $this->getResponse();
@@ -31,15 +49,8 @@ class OnyxRestController extends AbstractRestfulController
                 return $response;
             }
         }
-        
-        //if($this->params()->fromRoute('id', false)){
-            // we have and ID, return specific item
-        //    return $this->resourceOptions;
-        //}
         return parent::onDispatch($e);
-    }
-
-    
+    }    
 
     public function _getOptions(){
         if($this->params()->fromRoute('id', false)){
@@ -73,9 +84,7 @@ class OnyxRestController extends AbstractRestfulController
         // Register the listener and callback methods with a priority of 10
         $events->attach('dispatch',Array($this,'checkOptions'),10); 
 
-        return $this;
-        
-        
+        return $this;  
     }
     
     public function checkOptions($e){
@@ -98,86 +107,187 @@ class OnyxRestController extends AbstractRestfulController
             $data[] = $result;
         }
 
-        return new JsonModel(array(
-            'data' => $data,
-        ));
+        $this->successReturn['Success']['Data'] = $data;
+
+        return new JsonModel($this->successReturn);
     }
 
     public function get($id)
     {
-        $modelTable = $this->getModelTable();
-        
+        $modelTable = $this->getModelTable();        
         $data = $modelTable->getById($id);
+        
+        if($data === false){
+            $response = $this->getResponse();
+            $response->setStatusCode(400);
 
-        return new JsonModel(array(
-            'data' => $data,
-        ));
+            $this->errorReturn['Error'] = array(
+                    'HTTP Status' => '400',
+                    'Code'        => '124',
+                    'Message'     => 'invalid id',
+                    'More Info'   => 'docs link',
+            );
+
+            return new JsonModel($this->errorReturn);
+        }
+        
+
+        $this->successReturn['Success']['Data'] = $data;
+
+        return new JsonModel($this->successReturn);
     }
 
-    public function create($data){    
-        //$modelAPRService = $this->getServiceLocator()->get();
+    public function create($data){  
+        $model = $this->getModel();
+        $factory = new Factory();
         
-        /*$form = new AlbumForm();
-        $album = new Album();
-        $form->setInputFilter($album->getInputFilter());
-        $form->setData($data);
-        if ($form->isValid()) {
-            $album->exchangeArray($form->getData());
-            $id = $this->getAlbumTable()->saveAlbum($album);
-        }
+        $dbAdapter = $this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
+        
+        $validators = $model->getValidation($dbAdapter);
+       
+        $inputFilter = $factory->createInputFilter($validators);
+        
+        $inputFilter->setData($data);
+        if($inputFilter->isValid() ){
+            
+        }else{
+            $response = $this->getResponse();
+            $response->setStatusCode(400);
+            
+            $errors = array();
+            
+            foreach ($inputFilter->getInvalidInput() as $error) {
+                $errors[] = $error->getMessages();
+            }
 
-        return new JsonModel(array(
-            'data' => $this->get($id),
-        ));
-         */
+            $this->errorReturn['Error'] = array(
+                    'HTTP Status' => '400',
+                    'Code'        => '125',
+                    'Message'     => 'invalid data',
+                    'Data'        => $errors,
+                    'More Info'   => 'docs link',
+            );
+
+            return new JsonModel($this->errorReturn);
+        }
+        
+        // Valid data try to save   
+        try{
+            $model->exchangeArray($data);
+            $id = $this->getModelTable()->save($model);
+        }  catch (\Exception $e){
+            $response = $this->getResponse();
+            $response->setStatusCode(400);
+            
+
+            $this->errorReturn['Error'] = array(
+                    'HTTP Status' => '400',
+                    'Code'        => '126',
+                    'Message'     => 'error saving data -> '.$e->getMessage(),
+                    'More Info'   => 'docs link',
+            );
+
+            return new JsonModel($this->errorReturn);
+        }
+       
+
+        $this->successReturn['Success']['Data'] = $model;
+
+        return new JsonModel($this->successReturn);
+         
     }
 
     public function update($id, $data)
     {
-        /*
-        $data['id'] = $id;
-        $album = $this->getAlbumTable()->getAlbum($id);
-        $form  = new AlbumForm();
-        $form->bind($album);
-        $form->setInputFilter($album->getInputFilter());
-        $form->setData($data);
-        if ($form->isValid()) {
-            $id = $this->getAlbumTable()->saveAlbum($form->getData());
-        }
+        $model = $this->getModelTable()->getById($id);
+        
+        $factory = new Factory();
+        
+        $dbAdapter = $this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
+        
+        $validators = $model->getValidation($dbAdapter);
+       
+        $inputFilter = $factory->createInputFilter($validators);
+        
+        $inputFilter->setData($data);
+        if($inputFilter->isValid() ){
+            
+        }else{
+            $response = $this->getResponse();
+            $response->setStatusCode(400);
+            
+            $errors = array();
+            
+            foreach ($inputFilter->getInvalidInput() as $error) {
+                $errors[] = $error->getMessages();
+            }
 
-        return new JsonModel(array(
-            'data' => $this->get($id),
-        ));
-         * 
-         */
+            $this->errorReturn['Error'] = array(
+                    'HTTP Status' => '400',
+                    'Code'        => '125',
+                    'Message'     => 'invalid data',
+                    'Data'        => $errors,
+                    'More Info'   => 'docs link',
+            );
+
+            return new JsonModel($this->errorReturn);
+        }
+        
+        // Valid data try to save   
+        try{
+            $model->exchangeArray($data);
+            $id = $this->getModelTable()->save($model);
+        }  catch (\Exception $e){
+            $response = $this->getResponse();
+            $response->setStatusCode(400);
+            
+
+            $this->errorReturn['Error'] = array(
+                    'HTTP Status' => '400',
+                    'Code'        => '126',
+                    'Message'     => 'error saving data -> '.$e->getMessage(),
+                    'More Info'   => 'docs link',
+            );
+
+            return new JsonModel($this->errorReturn);
+        }
+       
+
+        $this->successReturn['Success']['Data'] = $model;
+
+        return new JsonModel($this->successReturn);
     }
 
     public function delete($id)
     {
-        /*
-        $this->getAlbumTable()->deleteAlbum($id);
+        
+        $this->getModelTable()->delete($id);
 
-        return new JsonModel(array(
-            'data' => 'deleted',
-        ));
-         * 
-         */
+        $this->successReturn['Success']['Data'] = "object with the id $id was deleted";
+
+        return new JsonModel($this->successReturn);
     }
     
     public function deleteList() {
         $response = $this->getResponse();
         $response->setStatusCode(400);
         
-        $result = array(
-            'Error' => array(
+        $this->errorReturn['Error'] = array(
                 'HTTP Status' => '400',
                 'Code'        => '123',
-                'Message'     => 'An ID is require to perform a delete',
+                'Message'     => 'this method is not allowed',
                 'More Info'   => 'docs link',
-            ),
         );
         
-        return new JsonModel($result);
+        return new JsonModel($this->errorReturn);
+    }
+    
+    private function getModel(){
+        if (!$this->model) {
+            $sm = $this->getServiceLocator();
+            $this->model = $sm->get($this->serviceModelFactory);
+        }
+        return $this->model;
     }
     
     private function getModelTable(){

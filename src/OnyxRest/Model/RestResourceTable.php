@@ -86,6 +86,7 @@ class RestResourceTable
         	'id' => $restresource->id,
         	'name' => $restresource->name,
         	'factory' => $restresource->factory,
+        	'modelfactory' => $restresource->modelfactory,
         	'tablename' => $restresource->tablename,
         	'auth' => $restresource->auth,
         	'updatedon' => $restresource->updatedon,
@@ -95,7 +96,7 @@ class RestResourceTable
         $id = (int)$restresource->id;
         if ($id == 0) {
         	$data['postdate'] = date('Y-m-d H:i:s');
-        	$this->tableGateway->insert($data);
+        	return $this->tableGateway->insert($data);
         } else {
         	if ($this->getById($id)) {
         		$this->tableGateway->update($data, array('id' => $id));
@@ -114,6 +115,7 @@ class RestResourceTable
     {
         $this->tableGateway->delete(array('id' => $id));
     }
+
     
     /**
      * Return named route
