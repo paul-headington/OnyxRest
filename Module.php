@@ -41,7 +41,7 @@ class Module
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     $resultSetPrototype = new ResultSet();
                     $resultSetPrototype->setArrayObjectPrototype(new RestResource());
-                    return new TableGateway('rest_resource', $dbAdapter, null, $resultSetPrototype);
+                    return new TableGateway('onyx_rest_resource', $dbAdapter, null, $resultSetPrototype);
                 },
                  
             ),
