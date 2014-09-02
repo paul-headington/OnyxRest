@@ -48,6 +48,11 @@ class OnyxRestController extends AbstractRestfulController
                 $response->setStatusCode(405);
                 return $response;
             }
+        }else{
+            // method not allowed
+            $response = $this->getResponse();
+            $response->setStatusCode(405);
+            return $response;
         }
         return parent::onDispatch($e);
     }    
@@ -88,7 +93,7 @@ class OnyxRestController extends AbstractRestfulController
     }
     
     public function checkOptions($e){
-        if(in_array($e->getRequest()->getMethod(), $this->_getOptions())){
+        if(in_array($e->getRequest()->getMethod(), $this->_getOptions())){ 
             // Method allowed, nothing to do
             return;
         }
@@ -129,11 +134,10 @@ class OnyxRestController extends AbstractRestfulController
             );
 
             return new JsonModel($this->errorReturn);
-        }
+        }        
         
-
         $this->successReturn['Success']['Data'] = $data;
-
+        
         return new JsonModel($this->successReturn);
     }
 
