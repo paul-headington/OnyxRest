@@ -179,6 +179,7 @@ class OnyxRestController extends AbstractRestfulController
         try{
             $model->exchangeArray($data);
             $id = $this->getModelTable()->save($model);
+            $model->setId($id);
         }  catch (\Exception $e){
             $response = $this->getResponse();
             $response->setStatusCode(400);
@@ -204,6 +205,8 @@ class OnyxRestController extends AbstractRestfulController
     public function update($id, $data)
     {
         $model = $this->getModelTable()->getById($id);
+        
+        $data['id'] = $id;
         
         $factory = new Factory();
         
