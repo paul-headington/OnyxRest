@@ -7,6 +7,8 @@ use Zend\EventManager\EventManagerInterface;
 use Zend\Mvc\MvcEvent;
 use Zend\View\Model\JsonModel;
 use Zend\InputFilter\Factory;
+use Zend\InputFilter\FileInput;
+use Zend\Validator;
 
 class OnyxRestController extends AbstractRestfulController
 {
@@ -149,10 +151,61 @@ class OnyxRestController extends AbstractRestfulController
         
         $validators = $model->getValidation($dbAdapter);
        
-        $inputFilter = $factory->createInputFilter($validators);
+        $inputFilter = $factory->createInputFilter($validators);        
         
+        // Merge $_POST and $_FILES data together
+        $request  = $this->getRequest();
+        
+        
+        $validFiles = array();
+        $postFiles = $request->getFiles();      
+
+        foreach ($postFiles as $key => $file) {
+            if ($file['error'] == UPLOAD_ERR_NO_FILE) continue;
+
+            $validFiles[$key] = $file;
+        }
+        
+
+        if (count($validFiles)) {
+           $data = array_merge($data,  $validFiles);   
+        }
+              
+      
+        if (count($validFiles)) {
+                
+                // File Input
+                $fileInput = new FileInput('file');
+                $fileInput->setRequired(true);
+
+                // You only need to define validators and filters
+                // as if only one file was being uploaded. All files
+                // will be run through the same validators and filters
+                // automatically.
+                $fileInput->getValidatorChain()
+                    ->attachByName('filesize',      array('max' => 404800))
+                    ->attachByName('filemimetype',  array('mimeType' => 'image/png,image/x-png'))
+                    ->attachByName('fileimagesize', array('maxWidth' => 1000, 'maxHeight' => 1000));
+          
+                // All files will be renamed, i.e.:
+                //   ./public/tmpuploads/thumb_4b3403665fea6.png,
+                //   ./public/tmpuploads/thumb_5c45147660fb7.png
+                $fileInput->getFilterChain()->attachByName(
+                    'filerenameupload',
+                    array(
+                        'target'    => './public/uploads/'.$data['file']['name'],
+                        'randomize' => false,
+                        'overwrite' => true,
+                    )
+                );
+                $inputFilter->add($fileInput);
+                $data['thumb'] = "/uploads/".$data['file']['name'];
+                
+        }
         $inputFilter->setData($data);
-        if($inputFilter->isValid() ){
+        
+        if($inputFilter->isValid() ){            
+            $inputFilter->getValues();
             
         }else{
             $response = $this->getResponse();
@@ -214,7 +267,7 @@ class OnyxRestController extends AbstractRestfulController
         
         $validators = $model->getValidation($dbAdapter);
        
-        $inputFilter = $factory->createInputFilter($validators);
+        $inputFilter = $factory->createInputFilter($validators);        
         
         $inputFilter->setData($data);
         if($inputFilter->isValid() ){

@@ -6,6 +6,7 @@ use OnyxRest\Model\RestResource;
 use OnyxRest\Model\RestResourceTable;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\TableGateway\TableGateway;
+use Imagine\Gd\Imagine;
 
 class Module
 {

@@ -3,6 +3,7 @@ return array(
     'controllers' => array(
         'invokables' => array(
             'OnyxRest\Controller\OnyxRest' => 'OnyxRest\Controller\OnyxRestController',
+            'OnyxRest\Controller\OnyxUpload' => 'OnyxRest\Controller\OnyxUploadController',
         ),
     ),
 
@@ -19,6 +20,17 @@ return array(
                     'defaults' => array(
                         '__NAMESPACE__' => 'OnyxRest\Controller',
                         'controller'    => 'OnyxRest',
+                    ),
+                ),
+            ),
+            'onyx-rest-upload' => array(
+                'type'    => 'Literal',
+                'options' => array(
+                    'route'    => '/api-upload',
+                    'defaults' => array(
+                        '__NAMESPACE__' => 'OnyxRest\Controller',
+                        'controller'    => 'OnyxUpload',
+                        'action'        => 'index',
                     ),
                 ),
             ),
