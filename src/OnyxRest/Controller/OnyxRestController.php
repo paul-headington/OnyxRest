@@ -184,7 +184,7 @@ class OnyxRestController extends AbstractRestfulController
                 // automatically.
                 $fileInput->getValidatorChain()
                     ->attachByName('filesize',      array('max' => 404800))
-                    ->attachByName('filemimetype',  array('mimeType' => 'image/png,image/x-png'))
+                    ->attachByName('filemimetype',  array('mimeType' => 'image/png,image/x-png,image/jpeg'))
                     ->attachByName('fileimagesize', array('maxWidth' => 1000, 'maxHeight' => 1000));
           
                 // All files will be renamed, i.e.:
