@@ -44,6 +44,26 @@ class OnyxRestController extends AbstractRestfulController
             if($restResource){
                 $this->serviceFactory = $restResource->factory;
                 $this->serviceModelFactory = $restResource->modelfactory;
+                if($restResource->auth){
+                    $sm = $this->getServiceLocator();
+                    $OnyxAcl = $sm->get('OnyxAcl');
+                    $identity = $OnyxAcl->getIdentity();
+                    if($identity == null){
+                        // method not allowed
+                        $response = $this->getResponse();
+                        $response->setStatusCode(405);
+                        return $response;
+                    }
+                    
+                }
+                if($restResource->get_only){
+                    $this->collectionOptions = array('GET');
+                    $this->resourceOptions = array('GET');
+                }
+                if($restResource->post_only){
+                    $this->collectionOptions = array('POST');
+                    $this->resourceOptions = array();
+                }
             }else{
                 // method not allowed
                 $response = $this->getResponse();
@@ -88,13 +108,14 @@ class OnyxRestController extends AbstractRestfulController
     {
         parent::setEventManager($events);
         
-        // Register the listener and callback methods with a priority of 10
-        $events->attach('dispatch',Array($this,'checkOptions'),10); 
+        // Register the listener and callback methods with a priority of -1000
+        $events->attach('dispatch',Array($this,'checkOptions'),-1000); 
 
         return $this;  
     }
     
     public function checkOptions($e){
+        
         if(in_array($e->getRequest()->getMethod(), $this->_getOptions())){ 
             // Method allowed, nothing to do
             return;

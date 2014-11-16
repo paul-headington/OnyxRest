@@ -89,6 +89,8 @@ class RestResourceTable
         	'modelfactory' => $restresource->modelfactory,
         	'tablename' => $restresource->tablename,
         	'auth' => $restresource->auth,
+            'get_only' => $restresource->get_only,
+            'post_only' => $restresource->post_only,
         	'updatedon' => $restresource->updatedon,
         	'postdate' => $restresource->postdate,
 
@@ -96,7 +98,9 @@ class RestResourceTable
         $id = (int)$restresource->id;
         if ($id == 0) {
         	$data['postdate'] = date('Y-m-d H:i:s');
-        	return $this->tableGateway->insert($data);
+            $id = $this->tableGateway->insert($data);
+        	$restresource->id = $id;
+        	return $id;
         } else {
         	if ($this->getById($id)) {
         		$this->tableGateway->update($data, array('id' => $id));

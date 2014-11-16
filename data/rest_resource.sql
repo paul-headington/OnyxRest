@@ -28,6 +28,8 @@ CREATE TABLE `onyx_rest_resource` (
   `modelfactory` varchar(255) DEFAULT NULL,
   `tablename` varchar(255) DEFAULT NULL,
   `auth` tinyint(1) DEFAULT '0',
+  `get_only` tinyint(1) DEFAULT '0',
+  `post_only` tinyint(1) DEFAULT '0',
   `updatedon` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `postdate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)

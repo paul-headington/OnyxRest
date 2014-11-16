@@ -55,6 +55,10 @@ class RestResource
     public $updatedon = null;
 
     public $postdate = null;
+    
+    public $get_only = null;
+    
+    public $post_only = null;
 
     const filter = null;
 
@@ -146,6 +150,18 @@ class RestResource
             'validators' => array(
                 
             )
+        ),
+        'get_only' => array(
+            'required' => false,
+            'validators' => array(
+                
+            )
+        ),
+        'post_only' => array(
+            'required' => false,
+            'validators' => array(
+                
+            )
         )
     );
 
@@ -169,14 +185,16 @@ class RestResource
      */
     public function exchangeArray($data)
     {
-        $this->id		= (isset($data["id"])) ? $data["id"] : null;
-        $this->name		= (isset($data["name"])) ? $data["name"] : null;
-        $this->factory		= (isset($data["factory"])) ? $data["factory"] : null;
-        $this->modelfactory		= (isset($data["modelfactory"])) ? $data["modelfactory"] : null;
-        $this->tablename		= (isset($data["tablename"])) ? $data["tablename"] : null;
-        $this->auth		= (isset($data["auth"])) ? $data["auth"] : null;
-        $this->updatedon		= (isset($data["updatedon"])) ? $data["updatedon"] : null;
-        $this->postdate		= (isset($data["postdate"])) ? $data["postdate"] : null;
+        $this->id		= (isset($data["id"])) ? $data["id"] : $this->id;
+        $this->name		= (isset($data["name"])) ? $data["name"] : $this->name;
+        $this->factory		= (isset($data["factory"])) ? $data["factory"] : $this->factory;
+        $this->modelfactory		= (isset($data["modelfactory"])) ? $data["modelfactory"] : $this->modelfactory;
+        $this->tablename		= (isset($data["tablename"])) ? $data["tablename"] : $this->tablename;
+        $this->auth		= (isset($data["auth"])) ? $data["auth"] : $this->auth;
+        $this->get_only		= (isset($data["get_only"])) ? $data["get_only"] : $this->get_only;
+        $this->post_only		= (isset($data["post_only"])) ? $data["post_only"] : $this->post_only;
+        $this->updatedon		= (isset($data["updatedon"])) ? $data["updatedon"] : $this->updatedon;
+        $this->postdate		= (isset($data["postdate"])) ? $data["postdate"] : $this->postdate;
     }
 
 
