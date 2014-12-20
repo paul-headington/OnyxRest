@@ -129,14 +129,40 @@ class OnyxRestController extends AbstractRestfulController
 
     public function getList()
     {
-        $results = $this->getModelTable()->fetchAll();
+        
         $data = array();
-        foreach($results as $result) {
-            $data[] = $result;
+        
+        if($this->params()->fromQuery('page') != null){
+            $results = $this->getModelTable()->fetchAll(true);
+            $results->setCurrentPageNumber((int)$this->params()->fromQuery('page', 1));
+            $results->setItemCountPerPage(50);
+            $this->successReturn['Success']['Page'] = $this->params()->fromQuery('page');
+            $this->successReturn['Success']['PageCount'] = $results->count() ;
+            
+        }else{
+            $results = $this->getModelTable()->fetchAll();   
         }
+        
+        $bad_data = array();
+        
+
+        foreach($results as $result) {
+            if (json_encode($result) !== false){
+                $data[] = $result;
+            
+            }else{
+                $bad_data[] = $result->id;
+            }
+            
+        }
+        
+        //var_dump($bad_data);
+       // exit();
+        
+        
 
         $this->successReturn['Success']['Data'] = $data;
-
+        
         return new JsonModel($this->successReturn);
     }
 
